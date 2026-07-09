@@ -1,0 +1,24 @@
+#!/bin/bash
+# Clever Dictate — App launcher
+# Engine runs in a terminal process (needs Accessibility from terminal app)
+# Tray runs as Python.app (GUI/Dock)
+
+cd "$HOME"
+
+PYTHON_GUI="/Library/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python"
+ENGINE="$HOME/.local/bin/dictate.py"
+TRAY="$HOME/.local/bin/dictate_tray.py"
+
+# Kill any stale instances
+pkill -9 -f "dictate_tray.py" 2>/dev/null
+pkill -9 -f "dictate\.py" 2>/dev/null
+pkill -9 ffmpeg 2>/dev/null
+sleep 0.5
+
+# Engine runs via arch -arm64 with homebrew in PATH
+# Launched as a background process from this bash context
+export PATH="/opt/homebrew/bin:$PATH"
+arch -arm64 /Library/Frameworks/Python.framework/Versions/3.13/bin/python3 "$ENGINE" > /tmp/dictate.log 2>&1 &
+
+# Tray (GUI) runs as Python.app for Dock/menubar
+exec $PYTHON_GUI "$TRAY" "$@"

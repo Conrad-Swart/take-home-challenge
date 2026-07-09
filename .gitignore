@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.python-version
+
+# macOS
+.DS_Store
+
+# Local app state / logs (app writes these outside the repo, but just in case)
+*.wav
+*.log
+settings.json
+history.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Model caches (large; downloaded at runtime)
+.cache/
+models/
+
+# In case a candidate goes the web route
+node_modules/
+.next/
+dist/
+build/

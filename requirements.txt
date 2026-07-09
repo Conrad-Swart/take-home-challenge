@@ -1,0 +1,21 @@
+# Clever Dictate — Python dependencies (Apple Silicon macOS)
+#
+# Versions are intentionally left unpinned for the prototype. Pinning them
+# for reproducible installs is a reasonable thing to do as part of the exercise.
+
+# Speech-to-text and local LLM cleanup (MLX — Apple Silicon only)
+mlx-whisper
+mlx-lm
+
+# Numerics
+numpy
+
+# Global hotkey listener + synthetic paste keystroke
+pynput
+
+# Menu-bar / history GUI (Foundation, AppKit, objc)
+pyobjc
+
+# System dependencies (NOT installed by pip):
+#   - Python 3.13 framework build from python.org
+#   - ffmpeg  ->  brew install ffmpeg
