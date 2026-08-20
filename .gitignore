@@ -30,3 +30,11 @@ node_modules/
 .next/
 dist/
 build/
+
+# Visual Studio workspace state
+.vs/
+
+# SQLite runtime data
+web/data/
+*.db
+*.db-journal

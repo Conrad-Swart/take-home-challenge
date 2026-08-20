@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      DB_URL: sqlite:////app/data/dictate.db
+      WHISPER_MODEL: ${WHISPER_MODEL:-small.en}
+      OLLAMA_URL: ${OLLAMA_URL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:cloud}
+      CLEANUP_THRESHOLD_S: ${CLEANUP_THRESHOLD_S:-15}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

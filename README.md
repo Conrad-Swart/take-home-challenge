@@ -10,6 +10,123 @@ This repo is the starting point for the CleverProfits **AI Automations Analyst**
 
 > The brief (deliverables, scoring, time budget) is also in [`TASK.md`](./TASK.md) so the repo stands on its own. **Read it first.**
 
+---
+
+## This fork: web rewrite
+
+The original app is macOS Apple Silicon only. I rebuilt it as a small
+multi-user web app in [`web/`](./web/). The original `dictate.py` and
+`dictate_tray.py` are left in place as reference. The WRITEUP references
+them by line number.
+
+See [`WRITEUP.md`](./WRITEUP.md) for the direction, the findings, and the
+next-two-weeks plan. See [`BOK/`](./BOK/) for the material decisions made
+along the way.
+
+### Simplest way to run it
+
+```bash
+cd web
+python run.py
+```
+
+`run.py` creates a virtual environment on first use, installs the
+dependencies, generates a secret key, opens the browser at
+<http://localhost:8000>, and starts the server. First run takes about
+2-3 minutes for the install; subsequent runs start in a couple of seconds.
+
+Requirements: **Python 3.10 or newer**, **ffmpeg** on your PATH, a modern
+browser, and a microphone.
+
+- Python: <https://www.python.org/downloads/>
+- ffmpeg on Windows: `winget install Gyan.FFmpeg`
+- ffmpeg on macOS: `brew install ffmpeg`
+- ffmpeg on Linux: `apt install ffmpeg` (or your distro equivalent)
+
+Once the browser opens:
+
+1. Click **Create an account**, enter any email and a password (8+ characters).
+2. Grant microphone permission when the browser asks.
+3. Hold the **Hold to talk** button, or hold **Space**, and speak.
+4. Release. The first transcription takes about 30 seconds while Whisper
+   downloads the `small.en` model (~500 MB) into a local cache. Every
+   transcription after that runs in a few seconds.
+
+To stop: `Ctrl+C` in the terminal.
+
+Your SQLite database lives at `web/data/dictate.db`. Deleting it wipes
+all users and history. `web/data/` is `.gitignored` and will not be
+committed.
+
+### Alternative: Docker
+
+If you would rather not install Python locally, and you have Docker
+Desktop running:
+
+```bash
+cd web
+docker compose up --build
+```
+
+On the first run the build takes about 3-5 minutes. Every run after that
+is a few seconds because Docker caches the layers. Open
+<http://localhost:8000> once you see `Uvicorn running` in the terminal.
+
+Docker Desktop installer if you do not have it:
+<https://www.docker.com/products/docker-desktop/>.
+
+### Turning on the LLM cleanup pass (optional)
+
+By default the app returns Whisper's raw output. To enable the cleanup
+pass on recordings longer than 15 seconds, edit `web/.env`:
+
+```
+OLLAMA_URL=http://host.docker.internal:11434
+OLLAMA_MODEL=qwen3.5:cloud
+```
+
+`host.docker.internal` reaches an Ollama running on the host from inside
+the container. Restart the container after changing `.env`:
+`docker compose up -d --force-recreate`.
+
+If Ollama is unreachable the app falls back to raw output silently — the
+transcription still comes back, it just is not cleaned.
+
+### Manual developer setup (if `run.py` is not what you want)
+
+```bash
+cd web
+python -m venv .venv
+.venv\Scripts\activate         # PowerShell / cmd on Windows
+# source .venv/bin/activate    # macOS / Linux
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+The app auto-generates a secret key into `data/.secret_key` on first
+launch, so no `.env` editing is required for a demo. Override
+`SECRET_KEY` (and other settings) via env vars for real deployments —
+see `.env.example` for the full list.
+
+### Troubleshooting
+
+- **"Port 8000 is already in use."** Something else is bound to 8000.
+  Change the left side of `"8000:8000"` in `web/docker-compose.yml`
+  (e.g. `"8080:8000"`) and open <http://localhost:8080> instead.
+- **"Mic permission denied."** In the browser, click the padlock icon
+  next to the URL and re-grant microphone access, then reload.
+- **First transcription hangs.** Whisper is downloading the model. Watch
+  the terminal running `docker compose up` — you will see the download
+  progress from Hugging Face.
+- **Cleanup pass is not running.** Check `OLLAMA_URL` in `.env`. Test
+  the URL from the container with `docker compose exec web curl
+  $OLLAMA_URL/api/tags` — you should see a JSON list of models.
+
+The original macOS instructions are below and remain valid if you have
+an Apple Silicon Mac.
+
+---
+
 ## What the app is
 
 Clever Dictate is a 100% local voice-to-text tool for macOS (Apple Silicon). Hold a push-to-talk key, speak, release, and the text gets pasted at your cursor. Everything runs on-device through Apple's MLX framework: no external APIs, nothing leaves the machine.
